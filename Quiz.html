@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>🎯 Défi BAC Express · Terminale</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap');
+        :root {
+            --bg: #0a0a1a; --surface: #13132b; --surface2: #1a1a35;
+            --primary: #f59e0b; --primary-light: #fbbf24; --accent: #ef4444;
+            --accent2: #f472b6; --gold: #fbbf24; --text: #f1f5f9;
+            --text-secondary: #94a3b8; --success: #10b981; --danger: #ef4444;
+            --border: #2d2d5e; --radius: 20px; --radius-sm: 14px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            background-image: radial-gradient(ellipse at 20% 30%, rgba(245,158,11,0.15) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(244,114,182,0.1) 0%, transparent 50%);
+            font-family: 'Inter', system-ui, sans-serif; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.8rem;
+        }
+        .quiz-container {
+            width: 100%; max-width: 850px; background: var(--surface);
+            border-radius: 28px; border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); padding: 1.5rem 1rem 2rem;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .header { text-align: center; margin-bottom: 1.5rem; }
+        .header-badge { display: inline-block; background: linear-gradient(135deg, var(--primary), var(--accent2)); color: white; padding: 0.4rem 1.5rem; border-radius: 50px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 1rem; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.6rem, 5vw, 2.4rem); font-weight: 800; color: var(--text); }
+        .subtitle { color: var(--text-secondary); font-size: 0.85rem; }
+        .timer-bar {
+            display: flex; align-items: center; justify-content: center; gap: 0.8rem;
+            margin: 1rem 0 1.5rem; background: var(--surface2); border-radius: 60px;
+            padding: 0.6rem 1.5rem; border: 1px solid var(--border);
+        }
+        .timer-icon { font-size: 1.5rem; }
+        .timer-text {
+            font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700;
+            color: var(--danger); min-width: 3rem; text-align: center;
+        }
+        .timer-text.warning { animation: pulse 0.5s ease infinite; }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+        .progress-wrapper { margin: 0.8rem 0 1rem; background: var(--surface2); border-radius: 16px; padding: 0.8rem 1.1rem; border: 1px solid var(--border); }
+        .stats-row { display: flex; justify-content: space-between; font-weight: 600; font-size: 0.85rem; color: var(--text); }
+        .progress-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; margin-top: 0.6rem; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent2)); border-radius: 10px; transition: width 0.6s; }
+        .question-card { background: var(--surface2); border-radius: var(--radius); padding: 1.5rem 1.2rem; margin-bottom: 1rem; border: 1px solid var(--border); border-top: 3px solid var(--primary); animation: slideIn 0.35s; }
+        @keyframes slideIn { from{opacity:0;transform:translateY(15px);} to{opacity:1;transform:translateY(0);} }
+        .question-number { display: inline-block; background: linear-gradient(135deg, var(--primary), var(--accent2)); color: white; padding: 0.3rem 1rem; border-radius: 50px; font-size: 0.75rem; font-weight: 700; margin-bottom: 1rem; }
+        .question-text { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1.2rem; line-height: 1.8; }
+        .options-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+        .option-btn { background: rgba(255,255,255,0.03); border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem 1.1rem; font-size: 0.95rem; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; text-align: left; }
+        .option-btn:hover:not(.disabled-option) { background: rgba(245,158,11,0.1); border-color: var(--primary); transform: translateX(5px); }
+        .option-letter { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.08); font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+        .option-btn.correct-highlight { background: rgba(16,185,129,0.2)!important; border-color: var(--success)!important; color: #34d399!important; }
+        .option-btn.correct-highlight .option-letter { background: var(--success); color: white; }
+        .option-btn.incorrect-highlight { background: rgba(239,68,68,0.2)!important; border-color: var(--danger)!important; color: #fca5a5!important; animation: shake 0.5s; }
+        @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+        .option-btn.show-correct { border-color: var(--success)!important; border-style: dashed!important; }
+        .option-btn.disabled-option { pointer-events: none; opacity: 0.7; }
+        .explanation-panel { background: rgba(245,158,11,0.08); border-radius: var(--radius-sm); padding: 1rem 1.1rem; margin-top: 1rem; border-left: 4px solid var(--primary); color: var(--text-secondary); font-size: 0.85rem; line-height: 1.8; }
+        .finish-screen { text-align: center; padding: 2rem 0.5rem; }
+        .score-circle { width: 130px; height: 130px; border-radius: 50%; background: white; border: 3px solid #e53e3e; display: flex; align-items: center; justify-content: center; margin: 1.5rem auto; box-shadow: 0 0 30px rgba(229,62,62,0.3); }
+        .score-number { font-size: 2.5rem; font-weight: 900; color: #e53e3e; }
+        .stars { display: flex; justify-content: center; gap: 6px; margin: 1rem 0; font-size: 2rem; }
+        .share-btn { background: var(--primary); color: white; border: none; padding: 0.8rem 2rem; border-radius: 50px; font-weight: 700; font-size: 0.95rem; cursor: pointer; font-family: 'Space Grotesk', sans-serif; transition: all 0.3s; }
+        .share-btn:hover { background: #d97706; transform: scale(1.05); }
+        .hidden { display: none!important; }
+        .katex { font-size: 1.05em; }
+        .copyright { text-align: center; margin-top: 1.2rem; font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8; letter-spacing: 0.3px; }
+        
+        /* Styles pour le bouton GUIDE DU BACHELIER */
+        .guide-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+        
+        .green-arrow {
+            position: absolute;
+            top: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            animation: arrowBounce 0.8s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.8));
+            z-index: 10;
+        }
+        
+        @keyframes arrowBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-12px); }
+        }
+        
+        .brand-link { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #f59e0b, #f472b6); 
+            color: white !important; 
+            padding: 0.7rem 1.8rem; 
+            border-radius: 50px; 
+            text-decoration: none; 
+            font-weight: 700; 
+            font-size: 0.9rem;
+            margin-top: 1.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(245,158,11,0.3);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: visible;
+        }
+        .brand-link:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 25px rgba(245,158,11,0.5); 
+        }
+        
+        /* Étincelles */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            font-size: 1rem;
+            animation: sparkleFloat 1.5s ease-in-out infinite;
+        }
+        .sparkle:nth-child(1) { top: -20px; left: 10%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: -15px; right: 15%; animation-delay: 0.3s; }
+        .sparkle:nth-child(3) { bottom: -15px; left: 20%; animation-delay: 0.6s; }
+        .sparkle:nth-child(4) { bottom: -20px; right: 10%; animation-delay: 0.9s; }
+        .sparkle:nth-child(5) { top: 50%; right: -15px; animation-delay: 1.2s; transform: translateY(-50%); }
+        .sparkle:nth-child(6) { top: 50%; left: -15px; animation-delay: 0.4s; transform: translateY(-50%); }
+        
+        @keyframes sparkleFloat {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+        }
+        
+        .promo-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 1.2rem 1rem 0.5rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+<div class="quiz-container" id="quizApp">
+    <div class="header">
+        <div class="header-badge">📐 Terminale · Révision Générale</div>
+        <h1>🎯 Défi BAC Express</h1>
+        <p class="subtitle">10 Questions · 60 Secondes · Note sur 20</p>
+    </div>
+    <div class="timer-bar">
+        <span class="timer-icon">⏱️</span>
+        <span class="timer-text" id="timerDisplay">60</span>
+        <span style="color:var(--text-secondary);">s restantes</span>
+    </div>
+    <div class="progress-wrapper">
+        <div class="stats-row">
+            <span id="levelIndicator">🎯 Question 1/10</span>
+            <span id="scoreDisplay">✅ 0/10</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+    </div>
+    <div id="quizContent"></div>
+    <div id="finishScreen" class="finish-screen hidden"></div>
+    <div class="copyright">©️ MATHERVE - Quiz Maths Terminale Premium 🔒 | Tous droits réservés</div>
+</div>
+
+<script>
+    function renderKaTeX(el) { if (!el) return; try { renderMathInElement(el, { delimiters: [{ left: "$$", right: "$$", display: true }, { left: "$", right: "$", display: false }], throwOnError: false, strict: false, trust: true }); } catch (e) {} }
+
+    function shuffleArray(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    function shuffleOptions(options, correctIndex) {
+        let indexed = options.map((opt, idx) => ({ opt, isCorrect: idx === correctIndex }));
+        for (let i = indexed.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [indexed[i], indexed[j]] = [indexed[j], indexed[i]];
+        }
+        const shuffled = indexed.map(item => item.opt);
+        const newCorrect = indexed.findIndex(item => item.isCorrect);
+        return { options: shuffled, correct: newCorrect };
+    }
+
+    const questionBank = [
+        { text: "$\\lim_{x\\to +\\infty} \\frac{2x^2+1}{x^2-3} =$", options: ["$2$", "$1$", "$+\\infty$", "$0$"], correct: 0, explanation: "Termes dominants $2x^2/x^2 = 2$." },
+        { text: "Suite arithmétique $u_0=3$, raison $r=2$. $u_5 =$", options: ["$13$", "$10$", "$15$", "$11$"], correct: 0, explanation: "$u_5 = 3 + 5\\times2 = 13$." },
+        { text: "Module de $z = 3+4i$ :", options: ["$5$", "$7$", "$25$", "$1$"], correct: 0, explanation: "$|z| = \\sqrt{3^2+4^2}=5$." },
+        { text: "Dérivée de $f(x)=\\ln(2x+1)$ :", options: ["$\\frac{2}{2x+1}$", "$\\frac{1}{2x+1}$", "$\\frac{2x}{2x+1}$", "$2\\ln(2x+1)$"], correct: 0, explanation: "$(\\ln u)' = u'/u$." },
+        { text: "$\\int_0^1 x\\,dx =$", options: ["$\\frac{1}{2}$", "$1$", "$0$", "$2$"], correct: 0, explanation: "$[x^2/2]_0^1 = 1/2$." },
+        { text: "$X \\sim B(10; 0,5)$. $P(X=5) \\approx$", options: ["$0,246$", "$0,5$", "$0,1$", "$0,623$"], correct: 0, explanation: "$\\binom{10}{5}0,5^{10} \\approx 0,246$." },
+        { text: "PGCD(36,48) =", options: ["$12$", "$6$", "$24$", "$18$"], correct: 0, explanation: "Algorithme d'Euclide." },
+        { text: "Distance de $O$ à $A(1,2,2)$ :", options: ["$3$", "$\\sqrt{5}$", "$5$", "$9$"], correct: 0, explanation: "$\\sqrt{1^2+2^2+2^2}=3$." },
+        { text: "$\\det\\begin{pmatrix}2&1\\\\3&4\\end{pmatrix}=$", options: ["$5$", "$11$", "$8-3=5$", "$6$"], correct: 0, explanation: "$2\\times4 - 1\\times3 = 5$." },
+        { text: "Solution de $y' = 3y$ :", options: ["$y = Ce^{3x}$", "$y = Ce^{-3x}$", "$y = 3Ce^{x}$", "$y = Cx^3$"], correct: 0, explanation: "$y' = ky \\Rightarrow y = Ce^{kx}$." },
+        { text: "$\\lim_{x\\to 0} \\frac{\\sin x}{x} =$", options: ["$1$", "$0$", "$+\\infty$", "n'existe pas"], correct: 0, explanation: "Limite usuelle." },
+        { text: "Une primitive de $\\cos x$ est :", options: ["$\\sin x$", "$-\\sin x$", "$\\cos x$", "$-\\cos x$"], correct: 0, explanation: "$(\\sin x)' = \\cos x$." },
+        { text: "$e^{i\\pi} =$", options: ["$-1$", "$1$", "$i$", "$-i$"], correct: 0, explanation: "Identité d'Euler." },
+        { text: "Coefficient binomial $\\binom{5}{2}=$", options: ["$10$", "$20$", "$5$", "$15$"], correct: 0, explanation: "$\\frac{5\\times4}{2}=10$." },
+        { text: "Loi uniforme $\\mathcal{U}([0,6])$ : espérance =", options: ["$3$", "$6$", "$2$", "$1$"], correct: 0, explanation: "$\\frac{0+6}{2}=3$." },
+        { text: "$\\int_1^e \\frac{1}{x}dx =$", options: ["$1$", "$e$", "$0$", "$\\ln e$"], correct: 0, explanation: "$[\\ln x]_1^e = 1$." },
+        { text: "Dans un triangle $ABC$, $\\vec{AB} + \\vec{BC} =$", options: ["$\\vec{AC}$", "$\\vec{CA}$", "$\\vec{0}$", "$\\vec{CB}$"], correct: 0, explanation: "Relation de Chasles." },
+        { text: "Valeur de $i^3$ :", options: ["$-i$", "$i$", "$1$", "$-1$"], correct: 0, explanation: "$i^3 = i^2 \\cdot i = -i$." },
+        { text: "$\\log_{10}(1000) =$", options: ["$3$", "$10$", "$100$", "$1000$"], correct: 0, explanation: "$10^3=1000$." },
+        { text: "Si $A$ et $B$ sont indépendants, $P(A \\cap B) =$", options: ["$P(A)P(B)$", "$P(A)+P(B)$", "$P(A|B)$", "$0$"], correct: 0, explanation: "Définition de l'indépendance." },
+        { text: "Le polynôme $x^2-1$ se factorise en :", options: ["$(x-1)(x+1)$", "$(x-1)^2$", "$(x+1)^2$", "$x(x-1)$"], correct: 0, explanation: "Identité remarquable." },
+        { text: "La dérivée de $e^{2x}$ est :", options: ["$2e^{2x}$", "$e^{2x}$", "$2e^{x}$", "$e^{x}$"], correct: 0, explanation: "$(e^{u})' = u'e^{u}$." },
+        { text: "L'ensemble des points $M$ tels que $|z-1|=|z+1|$ est :", options: ["L'axe imaginaire", "L'axe réel", "Le cercle unité", "Une droite"], correct: 0, explanation: "Médiatrice de $[-1,1]$." },
+        { text: "Rang de la matrice $\\begin{pmatrix}1&2\\\\2&4\\end{pmatrix}$ :", options: ["$1$", "$2$", "$0$", "$3$"], correct: 0, explanation: "Lignes proportionnelles." },
+        { text: "$\\tan(\\pi/4) =$", options: ["$1$", "$0$", "$\\sqrt{3}$", "$\\infty$"], correct: 0, explanation: "Valeur usuelle." },
+        { text: "Le volume d'une sphère de rayon $R$ est :", options: ["$\\frac{4}{3}\\pi R^3$", "$\\pi R^2$", "$4\\pi R^2$", "$2\\pi R$"], correct: 0, explanation: "Formule." },
+        { text: "Une suite géométrique de raison $q$ avec $|q|<1$ tend vers :", options: ["$0$", "$+\\infty$", "$1$", "diverge"], correct: 0, explanation: "Converge vers 0." },
+        { text: "$\\arcsin(1/2) =$", options: ["$\\pi/6$", "$\\pi/3$", "$\\pi/2$", "$0$"], correct: 0, explanation: "Valeur usuelle." },
+        { text: "La négation de $A \\Rightarrow B$ est :", options: ["$A \\land \\neg B$", "$\\neg A \\lor B$", "$A \\lor \\neg B$", "$\\neg A \\land B$"], correct: 0, explanation: "Logique." },
+        { text: "L'équation $y'' + 4y = 0$ a pour solution générale :", options: ["$A\\cos(2x)+B\\sin(2x)$", "$Ae^{2x}+Be^{-2x}$", "$Ae^{4x}+Be^{-4x}$", "$Ax+B$"], correct: 0, explanation: "Racines $\\pm 2i$." }
+    ];
+
+    const totalQuestions = 10;
+    let currentQuestion = 0;
+    let userAnswers = new Array(totalQuestions).fill(null);
+    let answerStatus = new Array(totalQuestions).fill(false);
+    let timerInterval;
+    let timeLeft = 60;
+    let quizEnded = false;
+    let shuffledQuestions = [];
+
+    function pickRandomQuestions() {
+        const indices = shuffleArray([...Array(questionBank.length).keys()]).slice(0, totalQuestions);
+        return indices.map(i => ({
+            ...questionBank[i],
+            shuffled: shuffleOptions(questionBank[i].options, questionBank[i].correct)
+        }));
+    }
+
+    const qc = document.getElementById('quizContent');
+    const fs = document.getElementById('finishScreen');
+    const pf = document.getElementById('progressFill');
+    const li = document.getElementById('levelIndicator');
+    const sd = document.getElementById('scoreDisplay');
+    const timerDisplay = document.getElementById('timerDisplay');
+
+    function startTimer() {
+        updateTimerDisplay();
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateTimerDisplay();
+            if (timeLeft <= 10) timerDisplay.classList.add('warning');
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                endQuiz();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay() {
+        timerDisplay.textContent = timeLeft;
+        if (timeLeft <= 10) timerDisplay.classList.add('warning');
+        else timerDisplay.classList.remove('warning');
+    }
+
+    function endQuiz() {
+        quizEnded = true;
+        clearInterval(timerInterval);
+        for (let i = 0; i < totalQuestions; i++) {
+            if (userAnswers[i] === null) userAnswers[i] = -1;
+        }
+        showFinishScreen();
+    }
+
+    function renderQuestion() {
+        if (quizEnded) return;
+        const q = shuffledQuestions[currentQuestion];
+        const s = userAnswers[currentQuestion];
+        const d = s !== null && s !== -1;
+        const shuffled = q.shuffled;
+        let h = `<div class="question-card"><span class="question-number">Q${currentQuestion + 1}/${totalQuestions}</span><div class="question-text" id="qm">${q.text}</div><div class="options-grid" id="oc">`;
+        shuffled.options.forEach((o, i) => {
+            let cls = 'option-btn', ex = '';
+            if (d) {
+                cls += ' disabled-option';
+                if (i === shuffled.correct) { cls += ' show-correct'; ex = ' ✅'; }
+                if (i === s && i === shuffled.correct) { cls += ' correct-highlight'; ex = ' ✅ Correct !'; }
+                else if (i === s && i !== shuffled.correct) { cls += ' incorrect-highlight'; ex = ' ❌ Incorrect !'; }
+            }
+            h += `<button class="${cls}" data-opt="${i}"><span class="option-letter">${['A','B','C','D'][i]}</span> <span>${o}</span>${ex}</button>`;
+        });
+        h += `</div>`;
+        if (d) h += `<div class="explanation-panel" id="em"><strong>📘 Explication :</strong> ${q.explanation}</div>`;
+        h += `</div>`;
+        qc.innerHTML = h;
+        fs.classList.add('hidden'); qc.classList.remove('hidden');
+        setTimeout(() => {
+            const qe = document.getElementById('qm'); if (qe) renderKaTeX(qe);
+            document.querySelectorAll('#oc span:not(.option-letter)').forEach(el => renderKaTeX(el));
+            const ee = document.getElementById('em'); if (ee) renderKaTeX(ee);
+        }, 50);
+        if (!d) {
+            document.querySelectorAll('#oc .option-btn:not(.disabled-option)').forEach(b => b.onclick = function() {
+                handleAnswer(parseInt(this.dataset.opt));
+            });
+        }
+        updateStats();
+    }
+
+    function handleAnswer(optIdx) {
+        if (quizEnded || userAnswers[currentQuestion] !== null) return;
+        const q = shuffledQuestions[currentQuestion];
+        userAnswers[currentQuestion] = optIdx;
+        answerStatus[currentQuestion] = (optIdx === q.shuffled.correct);
+        renderQuestion();
+        setTimeout(() => {
+            if (currentQuestion < totalQuestions - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                endQuiz();
+            }
+        }, 1200);
+    }
+
+    function updateStats() {
+        pf.style.width = Math.round(((currentQuestion) / totalQuestions) * 100) + '%';
+        li.textContent = `🎯 Question ${currentQuestion + 1}/${totalQuestions}`;
+        const correctCount = answerStatus.filter(s => s === true).length;
+        sd.textContent = `✅ ${correctCount}/${totalQuestions}`;
+    }
+
+    function showFinishScreen() {
+        clearInterval(timerInterval);
+        const totalCorrect = answerStatus.filter(s => s === true).length;
+        const totalAnswered = userAnswers.filter(x => x !== null && x !== -1).length;
+        const totalSkipped = userAnswers.filter(x => x === -1).length;
+        const scoreOn20 = totalCorrect * 2;
+        const p = Math.round((totalCorrect / totalQuestions) * 100);
+
+        let appreciation = '';
+        let stars = '';
+        let circleColor = '#e53e3e';
+        
+        if (scoreOn20 === 20) {
+            appreciation = '🌟 Parfait ! 20/20 ! Tu es prêt(e) pour le BAC !';
+            stars = '⭐⭐⭐⭐⭐';
+            circleColor = '#10b981';
+        } else if (scoreOn20 >= 16) {
+            appreciation = '👏 Excellent travail ! Continue comme ça !';
+            stars = '⭐⭐⭐⭐';
+            circleColor = '#10b981';
+        } else if (scoreOn20 >= 12) {
+            appreciation = '👍 Bon niveau ! Quelques révisions et ce sera parfait.';
+            stars = '⭐⭐⭐';
+            circleColor = '#f59e0b';
+        } else if (scoreOn20 >= 8) {
+            appreciation = '📚 Continue à t\'entraîner, tu progresses !';
+            stars = '⭐⭐';
+            circleColor = '#f59e0b';
+        } else {
+            appreciation = '💪 Ne lâche rien ! Reprends les bases et réessaye.';
+            stars = '⭐';
+            circleColor = '#ef4444';
+        }
+
+        qc.classList.add('hidden');
+        fs.classList.remove('hidden');
+        fs.innerHTML = `
+            <div class="finish-screen">
+                <h2 style="font-family:'Space Grotesk',sans-serif;font-size:1.8rem;color:var(--text);">⏱️ Temps écoulé !</h2>
+                <div class="score-circle" style="border-color:${circleColor}; box-shadow: 0 0 30px ${circleColor}40;">
+                    <span class="score-number" style="color:${circleColor};">${scoreOn20}/20</span>
+                </div>
+                <div class="stars">${stars}</div>
+                <p style="color:var(--text);font-weight:600;font-size:1.1rem;margin:0.5rem 0;">${appreciation}</p>
+                <div style="display:flex;gap:1rem;justify-content:center;margin:1.5rem 0;flex-wrap:wrap;">
+                    <div style="background:var(--success);color:white;padding:0.5rem 1.2rem;border-radius:50px;font-weight:700;">✅ ${totalCorrect} correctes</div>
+                    <div style="background:var(--danger);color:white;padding:0.5rem 1.2rem;border-radius:50px;font-weight:700;">❌ ${totalAnswered - totalCorrect} erreurs</div>
+                    <div style="background:var(--text-secondary);color:white;padding:0.5rem 1.2rem;border-radius:50px;font-weight:700;">⏭️ ${totalSkipped} non répondue(s)</div>
+                </div>
+                <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">Taux de réussite : <strong style="color:${circleColor};">${p}%</strong></p>
+                <button class="share-btn" onclick="restartQuiz()">🔄 Recommencer le Défi</button>
+                
+                <div class="promo-text">
+                    Si tu en as assez, comme moi, des cours trop volumineux, des PDF interminables et des vidéos de mauvaise qualité, j'ai une solution simple, moderne et efficace pour apprendre les maths autrement et progresser.
+                </div>
+                
+                <div class="guide-wrapper">
+                    <div class="green-arrow">⬇️</div>
+                    <a href="https://matherve.mychariow.shop/prd_hfj6mz9v" target="_blank" class="brand-link">
+                        <span class="sparkle">✨</span>
+                        <span class="sparkle">✨</span>
+                        <span class="sparkle">✨</span>
+                        <span class="sparkle">✨</span>
+                        <span class="sparkle">✨</span>
+                        <span class="sparkle">✨</span>
+                        🚀 LE GUIDE DU BACHELIER
+                    </a>
+                </div>
+            </div>
+        `;
+        document.querySelector('.timer-bar').style.opacity = '0.5';
+    }
+
+    function restartQuiz() {
+        clearInterval(timerInterval);
+        timeLeft = 60;
+        currentQuestion = 0;
+        userAnswers = new Array(totalQuestions).fill(null);
+        answerStatus = new Array(totalQuestions).fill(false);
+        quizEnded = false;
+        shuffledQuestions = pickRandomQuestions();
+        qc.classList.remove('hidden');
+        fs.classList.add('hidden');
+        document.querySelector('.timer-bar').style.opacity = '1';
+        timerDisplay.classList.remove('warning');
+        renderQuestion();
+        startTimer();
+    }
+
+    // Démarrage initial
+    shuffledQuestions = pickRandomQuestions();
+    renderQuestion();
+    startTimer();
+</script>
+</body>
+</html>
